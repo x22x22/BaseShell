@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091
 #===============================================================
-import="$(basename "${BASH_SOURCE[0]}" .sh)_$$"
-if [[ $(eval echo '$'"${import}") == 0 ]]; then return; fi
-eval "${import}=0"
-#===============================================================
-#导入工具包
+source ./../../BaseShell/Starter/BaseImported.sh && return
 source ./../../BaseShell/Starter/BaseStarter.sh
 source ./../../BaseShell/Cursor/BaseCursor.sh
 source ./../../BaseShell/Cursor/BaseKeyboardEvent.sh
@@ -55,7 +51,7 @@ function keyboard_select(){ _NotBlank "$1" "selection can not be null"
 }
 
 # 注册感兴趣的监听键盘事件
-# insert:插入键\delete:推给建\up:上箭头\down:下箭头\left:左箭头\right:右箭头
+# insert:插入键\delete:退格键\up:上箭头\down:下箭头\left:左箭头\right:右箭头
 # 键盘逃逸,键盘监听
 function keyboard_escape(){
   local keyboardEvents="$*"
@@ -129,7 +125,6 @@ function keyboard_escape(){
        $'\x0a')  # Enter
          ( equals "*" "${keyboardEvents}"  || string_contains "${keyboardEvents}" "enter") && {
            KeyboardEvent_enter
-           break
          }
        ;;
        $'\x1b')  # Escape

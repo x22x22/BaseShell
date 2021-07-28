@@ -1,47 +1,43 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091
 #===============================================================
-import="$(basename "${BASH_SOURCE[0]}" .sh)_$$"
-if [[ $(eval echo '$'"${import}") == 0 ]]; then return; fi
-eval "${import}=0"
-import="BaseHeader_$$"
-if [[ $(eval echo '$'"${import}") == 0 ]]; then return; fi
+# 这段的作用是为了判断当前Mini脚本是否之前被引用过
+IMPORT_SHELL_FLAG="${BASH_SOURCE[0]////_}"   #导入的脚本名称,把所有的/替换成_
+IMPORT_SHELL_FLAG="${IMPORT_SHELL_FLAG//./_}" #导入的脚本名称,把所有的.替换成_
+if [[ $(eval echo '$'"${IMPORT_SHELL_FLAG}") == 0 ]]; then return; fi 
+eval "${IMPORT_SHELL_FLAG}=0";
 #===============================================================
+# 加载自定义配置
+if [[ -f ./../config.sh ]];then
+  source ./../config.sh
+fi
+
+# 显示 Banner 图
+if [[ ${SHOW_BANNER} == 0 ]] && [[ -f "${BANNER_PATH}" ]] ;then
+  cat < "${BANNER_PATH}" |lolcat
+fi
+#===============================================================
+# 默认引入的常用工具函数
 # 脚本中被 #ignore 修饰的不自动生成文档
 # 脚本使用帮助文档
-manual(){ #ignore
-  # 全部的函数以及描述
-  equals "$1" "-a" && {
-    cat <"$0"                       \
-    | grep -v '#ignore'             \
-    | grep -B1 '(){'                \
-    | grep -v "\\--"                \
-    | sed "s/function //g"          \
-    | sed "s/(){//g"                \
-    | sed 'N;s/\n/ /'               \
-    | grep '#'                      \
-    | sed "s/#//g"                  \
-    | awk '{print $1,$3,$2}'        \
-    | column -t
-  }
-
-  # 暴露的函数以及描述
-  ! equals "$1" "-a" && {
-    cat <"$0"                       \
-    | grep -v '#ignore'             \
-    | grep -B1 'function'           \
-    | grep -v "\\--"                \
-    | sed "s/function //g"          \
-    | sed "s/(){//g"                \
-    | sed "s/#//g"                  \
-    | sed 'N;s/\n/ /'               \
-    | awk '{print $1,$3,$2}'        \
-    | column -t
-  }
+function manual(){ #ignore
+  cat <"$0"                  |
+      grep -v '#ignore'      |
+      grep -B1 'function'    |
+      grep -EB1 '(){|() {}'  |
+      grep -v "\\--"         |
+      sed "s/function //g"   |
+      sed "s/(){//g"         |
+      sed "s/() {//g"        |
+      sed 'N;s/\n/ /'        |
+      grep '#'               |
+      sed "s/#//g"           |
+      awk '{print $1,$3,$2}' |
+      column -t
 }
 
 # 函数的详细描述
-desc(){ _NotBlank "$1" "function can not be null" #ignore
+function desc(){ _NotBlank "$1" "function can not be null" #ignore
   local func=$1
   local begin=$(cat <"$0"|grep -n -B10 "${func}(){"|grep -w "}"|tail -1|awk -F '-' '{print $1}')
   local end=$(cat <"$0"|grep -n "${func}(){"|tail -1|awk -F ':' '{print $1}')

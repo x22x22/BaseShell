@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091,SC2155
 #===============================================================
-source ./../../BaseShell/Starter/BaseTestHeader.sh
+source ./../../BaseShell/Starter/BaseHeader.sh
 #===============================================================
 source ./../../BaseShell/Collection/BaseArrayList.sh
 #===============================================================
@@ -82,6 +82,29 @@ test-list2(){
   
   local result=$(list_reducer sum)
   assertEquals "${result}" "5"
+}
+
+test-list_size(){
+  list_add "0"
+  list_add "1"
+  list_add "2"
+  
+  list_set 1 "one"
+  local value=$(list_get 1)
+  assertEquals "${value}" "one"
+}
+
+test-list_isEmpty(){
+  list_isEmpty
+  assertTrue $?
+  
+  list_add "one"
+  list_isEmpty
+  assertFalse $?
+  
+  list_removeByIndex 0
+  list_isEmpty
+  assertTrue $?
 }
 #===============================================================
 source ./../../BaseShell/Starter/BaseTestEnd.sh
